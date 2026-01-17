@@ -36,8 +36,10 @@ int FilmTracker::getFilmYear() {
 
 double FilmTracker::getFilmRating() {
     double rating;
+    double minRating = 1;
+    double maxRating = 10;
     cout << "Rate the film 1-10: ";
-    while (!(cin >> rating) || rating < 1 || rating > 10) {
+    while (!(cin >> rating) || rating < minRating || rating > maxRating) {
         cout << "Invalid input. Enter a number between 1-10: ";
         cin.clear();
         cin.ignore(1000, '\n');
@@ -45,6 +47,32 @@ double FilmTracker::getFilmRating() {
     cin.ignore(1000, '\n');
     return rating;
 }
+
+ViewingType FilmTracker::getViewingType() {
+    int choice;
+
+    cout << "How did you watch the film?\n";
+    cout << "1. Theater\n";
+    cout << "2. Streaming\n";
+    cout << "3. Physical (DVD/Blu-ray)\n";
+    cout << "Enter choice: ";
+
+    while (!(cin >> choice) || choice < 1 || choice > 3) {
+        cout << "Invalid choice. Enter 1, 2, or 3: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
+
+    cin.ignore(1000, '\n');
+
+    switch (choice) {
+    case 1: return THEATER;
+    case 2: return STREAMING;
+    case 3: return PHYSICAL;
+    default: return STREAMING;
+    }
+}
+
 
 //public function to call in main
 void FilmTracker::getFilm() {
@@ -101,7 +129,7 @@ void FilmTracker::saveTable(const string& filename) const {
     outFile << left << setw(25) << "Title"
         << right << setw(10) << "Year"
         << right << setw(10) << "Rating" << endl;
-    outFile << "-------------------------------------------------\n";
+    outFile << "------------------------------------------------\n";
 
     for (int i = 0; i < count; i++) {
         outFile << left << setw(25) << films[i].title
@@ -147,31 +175,6 @@ double calculateAverageRating(Film arr[], int size) {
 void FilmTracker::printAverageScore() {
     double avg = calculateAverageRating(films, count);
     cout << "Average rating: " << avg << endl;
-}
-
-ViewingType FilmTracker::getViewingType() {
-    int choice;
-
-    cout << "How did you watch the film?\n";
-    cout << "1. Theater\n";
-    cout << "2. Streaming\n";
-    cout << "3. Physical (DVD/Blu-ray)\n";
-    cout << "Enter choice: ";
-
-    while (!(cin >> choice) || choice < 1 || choice > 3) {
-        cout << "Invalid choice. Enter 1, 2, or 3: ";
-        cin.clear();
-        cin.ignore(1000, '\n');
-    }
-
-    cin.ignore(1000, '\n');
-
-    switch (choice) {
-    case 1: return THEATER;
-    case 2: return STREAMING;
-    case 3: return PHYSICAL;
-    default: return STREAMING;
-    }
 }
 
 void FilmTracker::showMenu() {
