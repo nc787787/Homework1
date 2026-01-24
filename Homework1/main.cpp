@@ -50,7 +50,7 @@ TEST_CASE("Add one film and increase count") {
 	CHECK(tracker.addFilm(f) == false); //will be INVALID as true! exceeds max capacity 
 }
 
-TEST_CASE("Average rating calculation") {
+TEST_CASE("Average rating calculations") {
 	Film films[3];
 
 	films[0] = { "Movie A", 2020, 8.0, STREAMING };
