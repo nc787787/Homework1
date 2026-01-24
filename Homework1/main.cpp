@@ -32,7 +32,7 @@ double calculateAverageRating(Film arr[], int size); //exposing non-class functi
 #ifdef _DEBUG
 //debug code
 
-TEST_CASE("Add one film and increase count") {
+TEST_CASE("Add one film and increase the count") {
 	FilmTracker tracker;
 
 	Film f;
