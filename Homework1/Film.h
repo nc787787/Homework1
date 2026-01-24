@@ -35,4 +35,5 @@ public:
 	void populateArray();			//Prompts the user to fill the array of films
 	void printAverageScore();
 	void showMenu();		//Main function that calls many other functions
+	bool addFilm(const Film& f);
 };

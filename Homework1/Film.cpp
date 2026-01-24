@@ -160,7 +160,6 @@ void FilmTracker::populateArray() {
     }
 }
 
-
 //I only did it this way with a function outside of the class because there was a requirement to pass an array and I couldnt fit it naturally.
 double calculateAverageRating(Film arr[], int size) {
     if (size == 0) return 0;
@@ -217,4 +216,10 @@ void FilmTracker::showMenu() {
         }
 
     } while (choice != 5);
+}
+
+bool FilmTracker::addFilm(const Film& f) {
+    if (count >= MAX_FILMS) return false;
+    films[count++] = f;
+    return true;
 }
