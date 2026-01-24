@@ -10,3 +10,6 @@ This program was created for ITCS 2550.
 - Beautiful, easy to navigate menu.
 
 Must be run in visual studio
+
+### New Features
+Now includes doctest debugging
