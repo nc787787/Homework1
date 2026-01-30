@@ -8,8 +8,11 @@ This program was created for ITCS 2550.
 - Print and store a formatted table of all films added.
 - Compute average rating.
 - Beautiful, easy to navigate menu.
+- includes doctest debugging
 
 Must be run in visual studio
 
 ### New Features
-Now includes doctest debugging
+Now runs all doctests when pushed
+
+[![Run Doctests](https://github.com/nc787787/Homework1/actions/workflows/run-doctest.yml/badge.svg)](https://github.com/nc787787/Homework1/actions/workflows/run-doctest.yml)
