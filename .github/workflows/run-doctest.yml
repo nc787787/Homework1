@@ -18,7 +18,7 @@ jobs:
       - name: Build tests
         shell: cmd
         run: |
-          cl /nologo /EHsc /std:c++17 /D _DEBUG *.cpp /Fe:tests.exe
+          cl /nologo /EHsc /std:c++17 /D _DEBUG main.cpp /Fe:tests.exe
 
       - name: Run tests
         shell: cmd
