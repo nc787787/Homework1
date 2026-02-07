@@ -164,6 +164,7 @@ public:
         do {
             cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Quit\nChoice: ";
             cin >> choice;
+            cout << endl;
             cin.ignore(1000, '\n');
 
             if (choice == 1) {
