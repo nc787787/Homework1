@@ -9,10 +9,16 @@ This program was created for ITCS 2550.
 - Compute average rating.
 - Beautiful, easy to navigate menu.
 - includes doctest debugging
+- Runs all doctests when pushed
 
 Must be run in visual studio
 
 ### New Features
-Now runs all doctests when pushed
+Updated code to make better use of OOP
+
+Added Class Diagrams
 
 [![Run Doctests](https://github.com/nc787787/Homework1/actions/workflows/run-doctest.yml/badge.svg)](https://github.com/nc787787/Homework1/actions/workflows/run-doctest.yml)
+
+
+![Class Diagram](ClassDiagram.png)
