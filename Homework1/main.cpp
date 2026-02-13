@@ -31,7 +31,7 @@ public:
     }
 };
 
-//used as base
+//Abstract base class
 class MediaItem {
 protected:
     string title;     
@@ -56,15 +56,19 @@ public:
     void setTitle(string t) { title = t; }
     void setYear(int y) { if (y > 0) year = y; }
     void setViewingType(ViewingType v) { viewingType = v; }
-
     string getTitle() const { return title; }
     int getYear() const { return year; }
     ViewingType getViewingType() const { return viewingType; }
 
-    void print() const {
+    //virtual functions
+    virtual string getType() const = 0; //pure virtual
+
+    virtual void print() const {
         cout << left << setw(20) << title
             << setw(8) << year;
     }
+
+    virtual ~MediaItem() {};
 };
 
 //derived class
@@ -84,7 +88,13 @@ public:
     void setRating(double r) { rating.set(r); }
     double getRating() const { return rating.get(); }
 
-    void print() const  {
+
+    //overrides
+    string getType() const override {
+        return "Film";
+    }
+
+    void print() const override {
         MediaItem::print();   
         cout << setw(12) << "Film"          
             << setw(15) << fixed << setprecision(1) << rating.get(); 
@@ -110,7 +120,12 @@ public:
     void setSubject(string s) { subject = s; }
     string getSubject() const { return subject; }
 
-    void print() const  {
+    //overrides
+    string getType() const override {
+        return "Documentary";
+    }
+
+    void print() const  override{
         MediaItem::print();   
         cout << setw(12) << "Doc"           
             << setw(15) << subject;        
@@ -118,11 +133,23 @@ public:
     }
 };
 
+//manager class
 class MediaTracker {
 private:
-    static const int MAX_ITEMS = 5;
-    MediaItem items[MAX_ITEMS];
-    int count;
+    MediaItem** items;
+    int size;
+    int capacity;
+
+    void resizeArray() {
+        capacity *= 2;
+        MediaItem** temp = new MediaItem * [capacity];
+
+        for (int i = 0; i < size; i++)
+            temp[i] = items[i];
+
+        delete[] items;
+        items = temp;
+    }
 
     ViewingType askViewingType() {
         int choice;
@@ -137,12 +164,36 @@ private:
 
 public:
     MediaTracker() {
-        count = 0;
+        capacity = 5;
+        size = 0;
+        items = new MediaItem * [capacity];
     }
 
-    bool add(MediaItem& m) {
-        if (count >= MAX_ITEMS) return false;
-        items[count++] = m;
+    ~MediaTracker() {
+        for (int i = 0; i < size; i++)
+            delete items[i];      
+
+        delete[] items;  
+    }
+
+    bool add(MediaItem* m) {
+        if (size == capacity)
+            resizeArray();
+        else if (size > capacity) return false;
+        items[size++] = m;
+        return true;
+    }
+
+    bool remove(int index) {
+        if (index < 0 || index >= size)
+            return false;
+
+        delete items[index];
+
+        for (int i = index; i < size - 1; i++)
+            items[i] = items[i + 1];
+
+        size--;
         return true;
     }
 
@@ -153,16 +204,15 @@ public:
             << setw(15) << "Rating/Subject" << endl;
         cout << string(55, '-') << endl;
 
-        for (int i = 0; i < count; i++) {
-            items[i].print();   
-        }
+        for (int i = 0; i < size; i++)
+            items[i]->print();   // polymorphism
         cout << endl;
     }
 
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n9.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -173,8 +223,7 @@ public:
                 cout << "Year: "; cin >> y;
                 cout << "Rating: "; cin >> r;
                 ViewingType v = askViewingType();
-                Film f(t, y, v, r);
-                add(f);
+                add(new Film(t, y, v, r));
             }
 
             if (choice == 2) {
@@ -185,12 +234,18 @@ public:
                 cout << "Subject: "; getline(cin, s);
                 ViewingType v = askViewingType();
                 Documentary d(t, y, v, s);
-                add(d);
+                add(new Documentary(t, y, v, s));
             }
-
             if (choice == 3) printAll();
 
-        } while (choice != 4);
+            if (choice == 4) {
+                int index;
+                printAll();
+                cout << "Enter index to remove: ";
+                cin >> index;
+                remove(index);
+            }
+        } while (choice != 9);
     }
 };
 
@@ -219,16 +274,23 @@ TEST_CASE("Derived calls base via print") {
     CHECK(f.getTitle() == "Movie");
 }
 
-TEST_CASE("Tracker add") {
-    MediaTracker t;
-    Film f("A", 2000, STREAMING, 5);
-    CHECK(t.add(f) == true);
-}
-
 TEST_CASE("Setter updates") {
     Film f;
     f.setRating(6);
     CHECK(f.getRating() == 6);
+}
+
+TEST_CASE("Polymorphic virtual function test") {
+    MediaItem* m = new Film("Test", 2020, STREAMING, 9);
+    CHECK(m->getType() == "Film");
+    delete m;
+}
+
+TEST_CASE("Add & remove dynamic") {
+    MediaTracker t;
+    t.add(new Film("A", 2000, STREAMING, 5));
+    t.add(new Documentary("B", 2001, THEATER, "Nature"));
+    CHECK(t.remove(0) == true);
 }
 
 #else

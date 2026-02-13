@@ -10,7 +10,7 @@
   <Class Name="MediaItem">
     <Position X="6.5" Y="0.5" Width="3" />
     <TypeIdentifier>
-      <HashCode>AASEAAAAQAAABEAAAAAAAAACAAAAAIAAAAgAAAQAQAA=</HashCode>
+      <HashCode>AASEAAAAQAAABEAAEAAAAAACAQAAAIAAAAgAAAQAQAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
@@ -24,14 +24,14 @@
   <Class Name="Documentary">
     <Position X="8.25" Y="5" Width="3.5" />
     <TypeIdentifier>
-      <HashCode>QAQAAAAAAAAAAAAAAAAAAACIAAAAAAAAAAAAAAAAAIA=</HashCode>
+      <HashCode>QAQAAAAAAAAAAAAAAAAAAACIAQAAAAAAAAAAAAAAAIA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MediaTracker">
-    <Position X="2.75" Y="0.75" Width="1.5" />
+    <Position X="3.75" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAEAAAAAAAAEAAAABAgAAAAAAAAASAAAAAAAAACCAAA=</HashCode>
+      <HashCode>AAEAAAAAAAAEAAAEAMoAAAAAAAAACAAAAAAAAACCCAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
