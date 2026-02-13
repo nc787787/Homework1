@@ -14,7 +14,8 @@ This program was created for ITCS 2550.
 Must be run in visual studio
 
 ### New Features
-Updated code to make better use of OOP
+
+Updated to make better use of OOP
 
 Added Class Diagrams
 
