@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access" MembersFormat="FullSignature">
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
   <Class Name="Rating">
     <Position X="2.5" Y="5" Width="1.5" />
     <TypeIdentifier>
@@ -10,28 +10,28 @@
   <Class Name="MediaItem">
     <Position X="6.5" Y="0.5" Width="3" />
     <TypeIdentifier>
-      <HashCode>AASEAAAAQAAABEAAEAAAAAACAQAAAIAAAAgAAAQAQAA=</HashCode>
+      <HashCode>AASEAAAAQAAABEAAEAAAAAAiAQAAAIAAAAgAAAQAQAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Film">
     <Position X="4.5" Y="5" Width="3" />
     <TypeIdentifier>
-      <HashCode>AAQAAAAAAAEQAAAAAAAAAAAAAQAABAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAQAAAAAAAEQAAAAAAAAAQAgAQAABAAAAAAAEAAAAAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Documentary">
     <Position X="8.25" Y="5" Width="3.5" />
     <TypeIdentifier>
-      <HashCode>QAQAAAAAAAAAAAAAAAAAAACIAQAAAAAAAAAAAAAAAIA=</HashCode>
+      <HashCode>QAQAAAAAAAAAAAAAAAAAAACoAQAAAAAAAAAAAAAAAIA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MediaTracker">
     <Position X="3.75" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAEAAAAAAAAEAAAEAMoAAAAAAAAACAAAAAAAAACCCAA=</HashCode>
+      <HashCode>AAEAAAAAAAAEAAAAAEgAQQAAAAAACAAAAAAAAACAAAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
