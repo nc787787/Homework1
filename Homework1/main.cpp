@@ -9,6 +9,17 @@ using namespace std;
 
 enum ViewingType { THEATER = 1, STREAMING, PHYSICAL };
 
+class MediaException : public runtime_error {
+    string fullMsg;
+public:
+    MediaException(const string& msg)
+        : runtime_error(msg), fullMsg("\nMediaException: " + msg) {}
+
+    const char* what() const noexcept override {
+        return fullMsg.c_str();
+    }
+};
+
 template <typename T>
 void swapItems(T& a, T& b) {
     T temp = a;
@@ -38,7 +49,7 @@ public:
     }
 
     ~DynamicArray() {
-        delete[] data;  // If T is a pointer, actual object deletion happens in MediaTracker
+        delete[] data; 
     }
 
     bool add(const T& item) {
@@ -51,7 +62,7 @@ public:
 
     bool remove(int index) {
         if (index < 0 || index >= size)
-            return false;
+            throw MediaException("DynamicArray remove index out of bounds");
         for (int i = index; i < size - 1; i++)
             data[i] = data[i + 1];
         size--;
@@ -60,14 +71,15 @@ public:
 
     T& operator[](int index) {
         if (index < 0 || index >= size) {
-            cout << "Invalid index\n";
-            static T dummy;  // safe fallback
-            return dummy;
+            throw MediaException("DynamicArray index out of bounds");
         }
         return data[index];
     }
 
     const T& operator[](int index) const {
+        if (index < 0 || index >= size) {
+            throw MediaException("DynamicArray index out of bounds");
+        }
         return data[index];
     }
 
@@ -263,7 +275,8 @@ public:
     }
 
     MediaTracker& operator-=(int index) {
-        if (index < 0 || index >= items.getSize()) return *this;
+        if (index < 0 || index >= items.getSize())
+            throw MediaException("MediaTracker invalid index removal: " + to_string(index));
 
         delete items[index];
         items.remove(index);
@@ -271,7 +284,8 @@ public:
     }
 
     MediaItem* get(int index) const {
-        if (index < 0 || index >= items.getSize()) return nullptr;
+        if (index < 0 || index >= items.getSize())
+            throw MediaException("MediaTracker invalid index access: " + to_string(index));
         return items[index];
     }
 
@@ -325,13 +339,16 @@ public:
                 printAll();
                 cout << "Enter index to remove: ";
                 cin >> index;
-                *this -= index;
+                try{ *this -= index; }
+                catch (const MediaException& e) {
+                    cout << "Error: " << e.what() << endl;
+                }
             }
         } while (choice != 9);
     }
 };
-/*
-#ifdef _DEBUG
+
+#ifdef RunTests
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
@@ -368,18 +385,6 @@ TEST_CASE("Polymorphic virtual function test") {
     delete m;
 }
 
-TEST_CASE("Add & remove dynamic via += / -=") {
-    MediaTracker t;
-    t += new Film("A", 2000, STREAMING, 5);
-    t += new Documentary("B", 2001, THEATER, "Nature");
-
-    CHECK(t.get(0) != nullptr);
-    CHECK(t.get(1) != nullptr);
-    t -= 0;
-    CHECK(t.get(0) != nullptr);
-    CHECK(t.get(1) == nullptr);
-}
-
 TEST_CASE("Film == overload test") {
     Film f1("Movie", 2020, STREAMING, 8);
     Film f2("Movie", 2020, STREAMING, 8);
@@ -399,16 +404,6 @@ TEST_CASE("operator<<") {
     CHECK(oss2.str().find("Earth") != string::npos);
 }
 
-//using int because its a class template
-TEST_CASE("DynamicArray operator[]") {
-    DynamicArray<int> arr;
-    arr.add(10);
-    arr.add(20);
-    CHECK(arr[0] == 10);
-    CHECK(arr[1] == 20);
-
-    CHECK(arr[5] == 0);
-}
 
 TEST_CASE("swapItems with Film objects") {
     Film f1("Movie A", 2000, STREAMING, 7.5);
@@ -429,19 +424,31 @@ TEST_CASE("DynamicArray auto-resize") {
         CHECK(arr[i] == i);
 }
 
+TEST_CASE("DynamicArray invalid index throws") {
+    DynamicArray<int> arr;
+    arr.add(10);
+    CHECK_THROWS_AS(arr[5], MediaException);
+    CHECK_THROWS_AS(arr[-1], MediaException);
+}
 
-#else*/
-//main
+TEST_CASE("DynamicArray remove invalid index throws") {
+    DynamicArray<int> arr;
+    arr.add(10);
+    CHECK_THROWS_AS(arr.remove(1), MediaException);
+}
+
+
+#else
 int main() {
-    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
     {
         MediaTracker tracker;
         tracker.showMenu();
     }
-    //int* test = new int;
-    //*test = 10;
-    _CrtDumpMemoryLeaks();
+    int leaks = _CrtDumpMemoryLeaks();
+    if (!leaks) {
+        cout << "No memory leaks detected.\n";
+    }
+
     return 0;
 }
-
-//#endif
+#endif
