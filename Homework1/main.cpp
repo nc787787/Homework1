@@ -84,6 +84,10 @@ public:
     }
 
     int getSize() const { return size; }
+
+    double highestRating(int first, int last) {
+
+    }
 };
 
 
@@ -300,15 +304,43 @@ public:
             cout << *(items[i]);
             cout << endl;
         }
-            
-
         cout << endl;
+    }
+
+    double highestRating(int& outIndex, int index = 0) const {
+
+        //base case
+        if (index >= items.getSize()) {
+            outIndex = -1;
+            return 0;
+        }
+
+        Film* f = dynamic_cast<Film*>(items[index]);
+        double currentRating = 0;
+        int currentIndex = -1;
+
+        if (f != nullptr) {
+            currentRating = f->getRating();
+            currentIndex = index;
+        }
+
+        int restIndex;
+        double maxRest = highestRating(restIndex, index + 1);
+
+        if (currentRating > maxRest) {
+            outIndex = currentIndex;
+            return currentRating;
+        }
+        else {
+            outIndex = restIndex;
+            return maxRest;
+        }
     }
 
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n9.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n9.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -343,6 +375,13 @@ public:
                 catch (const MediaException& e) {
                     cout << "Error: " << e.what() << endl;
                 }
+            }
+
+            if (choice == 5) {
+                int maxIndex;
+                double maxRating = highestRating(maxIndex);
+                cout << "Highest rating: " << maxRating
+                    << " for " << items[maxIndex]->getTitle();
             }
         } while (choice != 9);
     }
@@ -437,6 +476,34 @@ TEST_CASE("DynamicArray remove invalid index throws") {
     CHECK_THROWS_AS(arr.remove(1), MediaException);
 }
 
+TEST_CASE("Recursive function with films") {
+    MediaTracker tracker;
+
+    tracker += new Film("Movie A", 2000, STREAMING, 7.5);
+    tracker += new Film("Movie B", 2010, THEATER, 8.2); 
+    tracker += new Film("Movie C", 2005, PHYSICAL, 6.8);
+
+    tracker += new Documentary("Earth Doc", 2012, STREAMING, "Nature");
+
+    int maxIndex;
+    double maxRating = tracker.highestRating(maxIndex);
+
+    CHECK(maxRating == 8.2);                        
+    CHECK(tracker.get(maxIndex)->getTitle() == "Movie B");  
+}
+
+TEST_CASE("Recursive function with no films") {
+    MediaTracker tracker;
+
+    tracker += new Documentary("Doc 1", 2000, STREAMING, "Science");
+    tracker += new Documentary("Doc 2", 2005, THEATER, "Nature");
+
+    int maxIndex;
+    double maxRating = tracker.highestRating(maxIndex);
+
+    CHECK(maxRating == 0);      
+    CHECK(maxIndex == -1);      
+}
 
 #else
 int main() {
