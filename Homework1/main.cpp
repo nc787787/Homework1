@@ -4,6 +4,7 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#include <vector>
 
 using namespace std;
 
@@ -252,6 +253,7 @@ public:
 class MediaTracker {
 private:
     DynamicArray<MediaItem*> items;
+    vector<int> prices;
 
     ViewingType askViewingType() {
         int choice;
@@ -291,6 +293,51 @@ public:
         if (index < 0 || index >= items.getSize())
             throw MediaException("MediaTracker invalid index access: " + to_string(index));
         return items[index];
+    }
+
+    int seqSearch(const vector<int>& list, int target)
+    {
+        for (int i = 0; i < list.size(); i++) {
+            if (list[i] == target)
+                return i;
+        }
+        return -1;
+    }
+
+    void bubbleSort(vector<int>& list) {
+        int temp;
+
+        for (int iteration = 1; iteration < list.size(); iteration++) {
+            for (int index = 0; index < list.size() - iteration; index++) {
+                if (list[index] > list[index + 1]) {
+                    temp = list[index];
+                    list[index] = list[index + 1];
+                    list[index + 1] = temp;
+                }
+            }
+        }
+    }
+
+    int binarySearch(const vector<int>& list, int target) {
+        int first = 0;
+        int last = list.size() - 1;
+        int mid;
+        bool found = false;
+
+        while (first <= last && !found) {
+            mid = (first + last) / 2;
+
+            if (list[mid] == target)
+                found = true;
+            else if (list[mid] > target)
+                last = mid - 1;
+            else
+                first = mid + 1;
+        }
+        if (found)
+            return mid;
+        else
+            return -1;
     }
 
     void printAll() const {
@@ -503,6 +550,25 @@ TEST_CASE("Recursive function with no films") {
 
     CHECK(maxRating == 0);      
     CHECK(maxIndex == -1);      
+}
+
+TEST_CASE("MediaTracker search and sort functions") {
+    MediaTracker tracker;
+    vector<int> data = { 5, 3, 8, 1, 9 };
+
+    // Test sequential search
+    CHECK(tracker.seqSearch(data, 8) == 2);
+    CHECK(tracker.seqSearch(data, 1) == 3);
+    CHECK(tracker.seqSearch(data, 10) == -1);
+
+    // Test bubble sort
+    tracker.bubbleSort(data);
+    CHECK(data == vector<int>{1, 3, 5, 8, 9});
+
+    // Test binary search on sorted vector
+    CHECK(tracker.binarySearch(data, 5) == 2);
+    CHECK(tracker.binarySearch(data, 1) == 0);
+    CHECK(tracker.binarySearch(data, 10) == -1);
 }
 
 #else
