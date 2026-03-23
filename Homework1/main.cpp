@@ -8,6 +8,178 @@
 
 using namespace std;
 
+template <typename Type>
+struct nodeType {
+    Type info;
+    nodeType* link;
+};
+
+template<typename Type>
+class linkedListIterator {
+private:
+    nodeType<Type>* current;
+public:
+    linkedListIterator() {
+        current = nullptr;
+    }
+
+    linkedListIterator(nodeType<Type>* ptr) {
+        current = ptr;
+    }
+
+    Type operator*() {
+        return current->info;
+    }
+
+    linkedListIterator<Type> operator++() {
+        current = current->link;
+        return *this;
+    }
+
+    bool isDone() const {
+        return current == nullptr;
+    }
+};
+
+template <typename Type>
+class unorderedLinkedList {
+private:
+    int count;
+    nodeType<Type>* first;
+    nodeType<Type> *last;
+
+public:
+    unorderedLinkedList() {
+        first = nullptr;
+        last = nullptr;
+        count = 0;
+    }
+
+    void print() const {
+        nodeType<Type>* current;
+        current = first;
+
+        while (current != nullptr) {
+            count << current->info << " ";
+            current = current->link;
+        }
+    }
+
+    void destroyList() {
+        nodeType<Type>* temp;
+
+        while (first != nullptr) {
+            temp = first;
+            first = first->link;
+            delete temp;
+        }
+        last = nullptr;
+        count = 0;
+    }
+
+    bool search(const Type& searchItem) {
+        bool found = false;
+        nodeType<Type>* current;
+        current = first;
+
+        while (current != nullptr && !found)
+            if (current->info == searchItem)
+                return true;
+            else
+                current = current->link;
+        return false;
+    }
+
+    void insertFirst(const Type& newItem) {
+        nodeType<Type>* newNode;
+        newNode = new nodeType<Type>;
+        newNode->info = newItem;
+        newNode->link = first;
+        first = newNode;
+
+        count++;
+
+        if (last == nullptr)
+            last = newNode;
+    }
+
+    void insertLast(const Type& newItem) {
+        nodeType<Type>* newNode;
+        newNode = new nodeType<Type>;
+
+        newNode->info = newItem;
+        newNode->link = nullptr;
+
+        if (first == nullptr) {
+            first = newNode;
+            last = newNode;
+            count++;
+        }
+        else {
+            last->link = newNode;
+            last = newNode;
+
+            count++;
+        }
+    }
+
+    void deleteNode(const Type& deleteItem) {
+        nodeType<Type>* current;
+        nodeType<Type>* trailCurrent;
+        bool found;
+
+        if (first == nullptr)
+            cout << "Searched failed: empty list." << endl;  
+        else {
+            if (first->info == deleteItem) {
+                current = first;
+                first = first->link;
+                count--;
+                if (first == nullptr)
+                        last = nullptr;
+                delete current;
+            }
+            else {
+                found = false;
+                trailCurrent = first;
+                current = first->link;
+                while (current != nullptr && !found) {
+                    if (current->info != deleteItem) {
+                        trailCurrent = current;
+                        current = current->link;
+                    }
+                    else
+                        found = true;
+                }
+
+                if (found) {
+                    trailCurrent->link = current->link;
+                    count--;
+                    if (last == current)
+                        last = trailCurrent;
+                    delete current;
+                }
+                else
+                    cout << "Search failed: item is not in list" << endl;
+            }
+        }
+    }
+
+    linkedListIterator<Type> begin() {
+        linkedListIterator<Type> temp(first);
+        return temp;
+    }
+
+    linkedListIterator<Type> end() {
+        linkedListIterator<Type> temp(nullptr);
+        return temp;
+    }
+
+    ~unorderedLinkedList() {
+        destroyList();
+    }
+};
+
 enum ViewingType { THEATER = 1, STREAMING, PHYSICAL };
 
 class MediaException : public runtime_error {
@@ -254,6 +426,7 @@ class MediaTracker {
 private:
     DynamicArray<MediaItem*> items;
     vector<int> prices;
+    
 
     ViewingType askViewingType() {
         int choice;
@@ -267,6 +440,8 @@ private:
     }
 
 public:
+    unorderedLinkedList<int> linkedPrices;
+
     MediaTracker() {
     }
 
@@ -387,7 +562,7 @@ public:
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n9.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n9.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -429,6 +604,17 @@ public:
                 double maxRating = highestRating(maxIndex);
                 cout << "Highest rating: " << maxRating
                     << " for " << items[maxIndex]->getTitle();
+            }
+            if (choice == 6) {
+                int loop = 0;
+                int temp = 0;
+                while (loop == 0) {
+                    cout << "\nEnter Price: ";
+                    cin >> temp;
+                    if (temp == -1)
+                        break;
+                    linkedPrices.insertFirst(temp);
+                }
             }
         } while (choice != 9);
     }
@@ -569,6 +755,37 @@ TEST_CASE("MediaTracker search and sort functions") {
     CHECK(tracker.binarySearch(data, 5) == 2);
     CHECK(tracker.binarySearch(data, 1) == 0);
     CHECK(tracker.binarySearch(data, 10) == -1);
+}
+
+TEST_CASE("Insert/Delete function of linked list") {
+    unorderedLinkedList<int> list;
+
+    list.insertFirst(10);
+    CHECK(list.search(10));   
+    list.insertLast(20);
+    CHECK(list.search(20));
+    list.insertLast(30);
+    CHECK(list.search(30));
+
+    list.deleteNode(20);
+    CHECK(!list.search(20));
+    CHECK(list.search(10));    //10 maintains position
+    CHECK(list.search(30));    //30 shifts on previous delete
+}
+
+TEST_CASE("Iterator traversal") {
+    unorderedLinkedList<int> list;
+    list.insertLast(1);
+    list.insertLast(2);
+    list.insertLast(3);
+
+    linkedListIterator<int> it = list.begin();
+    int expected = 1;
+    while (!it.isDone()) {
+        CHECK(*it == expected);
+        ++it;
+        ++expected;
+    }
 }
 
 #else

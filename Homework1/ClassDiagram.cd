@@ -1,28 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access" MembersFormat="FullSignature">
   <Class Name="DynamicArray&lt;T&gt;">
-    <Position X="10" Y="0.5" Width="1.5" />
+    <Position X="7.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAIAAAAAUAIIAAAAAAAEAAAAAAQAQAAACEAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MediaTracker">
-    <Position X="2.75" Y="0.5" Width="3.25" />
+    <Position X="5.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAEAAAAAAAAEAAAQAEgAQQAAAAAACAAAAAAAAACAAAA=</HashCode>
+      <HashCode>AAEBAAAAAAAGAAAQAEgAQQAAAAAACAAAAAAAAICIAIA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Documentary">
-    <Position X="8.25" Y="5" Width="3.5" />
+    <Position X="4.25" Y="5.5" Width="3.5" />
     <TypeIdentifier>
       <HashCode>QAQAAAAAAAAAAAAAAAAAAACoAQAAAAAAAAAAAAAAAIA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Film">
-    <Position X="4.5" Y="5" Width="3" />
+    <Position X="0.5" Y="5.5" Width="3" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
@@ -32,28 +32,49 @@
     </TypeIdentifier>
   </Class>
   <Class Name="MediaItem">
-    <Position X="6.5" Y="0.5" Width="3" />
+    <Position X="2.5" Y="0.5" Width="3" />
     <TypeIdentifier>
       <HashCode>AASEAAAAQAAABEAAEAAAAAAiAQAAAIAAAAgAAAQAQAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Rating">
-    <Position X="2.5" Y="5" Width="1.75" />
+    <Position X="0.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAQAQAAAAAAAACEAAAAAAAAAAAI=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="MediaException">
-    <Position X="12.75" Y="1" Width="1.5" />
+  <Class Name="MediaException" Collapsed="true">
+    <Position X="0.75" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAKAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAA=</HashCode>
       <FileName>main.cpp</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="linkedListIterator&lt;Type&gt;">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAAAAAAQAAAAAAAgAAAAAAAAAAgAAAAAgA=</HashCode>
+      <FileName>main.cpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="unorderedLinkedList&lt;Type&gt;">
+    <Position X="13.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAGAAQAggAABAEAAAAQAAAAAgAAACAAAAAAAwA=</HashCode>
+      <FileName>main.cpp</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="nodeType&lt;Type&gt;">
+    <Position X="9.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAEA=</HashCode>
+      <FileName>main.cpp</FileName>
+    </TypeIdentifier>
+  </Struct>
   <Enum Name="ViewingType">
-    <Position X="0.75" Y="0.75" Width="1.5" />
+    <Position X="0.75" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAACAAAA=</HashCode>
       <FileName>main.cpp</FileName>
