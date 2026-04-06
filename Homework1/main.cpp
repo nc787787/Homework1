@@ -60,7 +60,7 @@ public:
         current = first;
 
         while (current != nullptr) {
-            count << current->info << " ";
+            cout << current->info << " ";
             current = current->link;
         }
     }
@@ -129,7 +129,7 @@ public:
         bool found;
 
         if (first == nullptr)
-            cout << "Searched failed: empty list." << endl;  
+            cout << "Searched failed: empty list." << endl;
         else {
             if (first->info == deleteItem) {
                 current = first;
@@ -222,7 +222,7 @@ public:
     }
 
     ~DynamicArray() {
-        delete[] data; 
+        delete[] data;
     }
 
     bool add(const T& item) {
@@ -263,6 +263,109 @@ public:
     }
 };
 
+template <typename T>
+class ArrayStack {
+private:
+    T* data;
+    int topIndex;
+    int capacity;
+
+public:
+    explicit ArrayStack(int cap = 10)
+        : data(nullptr), topIndex(-1), capacity(cap) {
+        if (capacity <= 0)
+            throw MediaException("ArrayStack invalid capacity");
+        data = new T[capacity];
+    }
+
+    ~ArrayStack() {
+        delete[] data;
+    }
+
+    bool isEmpty() const {
+        return topIndex < 0;
+    }
+
+    bool isFull() const {
+        return topIndex >= capacity - 1;
+    }
+
+    bool push(const T& item) {
+        if (isFull())
+            return false;
+        data[++topIndex] = item;
+        return true;
+    }
+
+    T pop() {
+        if (isEmpty())
+            throw MediaException("ArrayStack pop from empty stack");
+        return data[topIndex--];
+    }
+
+    T top() const {
+        if (isEmpty())
+            throw MediaException("ArrayStack top from empty stack");
+        return data[topIndex];
+    }
+};
+
+template <typename T>
+class ArrayQueue {
+private:
+    T* data;
+    int frontIndex;
+    int backIndex;
+    int count;
+    int capacity;
+
+public:
+    explicit ArrayQueue(int cap = 10)
+        : data(nullptr), frontIndex(0), backIndex(0), count(0), capacity(cap) {
+        if (capacity <= 0)
+            throw MediaException("ArrayQueue invalid capacity");
+        data = new T[capacity];
+    }
+
+    ~ArrayQueue() {
+        delete[] data;
+    }
+
+    bool isEmpty() const {
+        return count == 0;
+    }
+
+    bool isFull() const {
+        return count == capacity;
+    }
+
+    bool enqueue(const T& item) {
+        if (isFull())
+            return false;
+
+        data[backIndex] = item;
+        backIndex = (backIndex + 1) % capacity;
+        count++;
+        return true;
+    }
+
+    T dequeue() {
+        if (isEmpty())
+            throw MediaException("ArrayQueue dequeue from empty queue");
+
+        T item = data[frontIndex];
+        frontIndex = (frontIndex + 1) % capacity;
+        count--;
+        return item;
+    }
+
+    T front() const {
+        if (isEmpty())
+            throw MediaException("ArrayQueue front from empty queue");
+
+        return data[frontIndex];
+    }
+};
 
 //used as composition
 class Rating {
@@ -292,7 +395,7 @@ public:
 //Abstract base class
 class MediaItem {
 protected:
-    string title;     
+    string title;
 
 private:
     int year;
@@ -378,9 +481,9 @@ public:
     }
 
     void print() const override {
-        MediaItem::print();   
-        cout << setw(12) << "Film"          
-            << setw(15) << fixed << setprecision(1) << rating.get(); 
+        MediaItem::print();
+        cout << setw(12) << "Film"
+            << setw(15) << fixed << setprecision(1) << rating.get();
         if (rating.isFavorite()) cout << "(Fav)";
         cout << endl;
     }
@@ -392,7 +495,7 @@ private:
     string subject;
 
 public:
-    Documentary() : MediaItem() { 
+    Documentary() : MediaItem() {
         subject = "";
     }
 
@@ -414,9 +517,9 @@ public:
     }
 
     void print() const  override{
-        MediaItem::print();   
-        cout << setw(12) << "Doc"           
-            << setw(15) << subject;        
+        MediaItem::print();
+        cout << setw(12) << "Doc"
+            << setw(15) << subject;
         cout << endl;
     }
 };
@@ -426,7 +529,8 @@ class MediaTracker {
 private:
     DynamicArray<MediaItem*> items;
     vector<int> prices;
-    
+    ArrayStack<MediaItem*> undoRemoved;
+
 
     ViewingType askViewingType() {
         int choice;
@@ -442,12 +546,15 @@ private:
 public:
     unorderedLinkedList<int> linkedPrices;
 
-    MediaTracker() {
+    MediaTracker() : undoRemoved(10) {
     }
 
     ~MediaTracker() {
         for (int i = 0; i < items.getSize(); i++)
             delete items[i];
+
+        while (!undoRemoved.isEmpty())
+            delete undoRemoved.pop();
     }
 
     MediaTracker& operator+=(MediaItem* m) {
@@ -459,9 +566,24 @@ public:
         if (index < 0 || index >= items.getSize())
             throw MediaException("MediaTracker invalid index removal: " + to_string(index));
 
-        delete items[index];
+        MediaItem* removed = items[index];
         items.remove(index);
+
+        if (!undoRemoved.push(removed)) {
+            delete removed;
+            throw MediaException("Undo stack full - cannot store removed item");
+        }
+
         return *this;
+    }
+
+    bool undoLastRemove() {
+        if (undoRemoved.isEmpty())
+            return false;
+
+        MediaItem* restored = undoRemoved.pop();
+        items.add(restored);
+        return true;
     }
 
     MediaItem* get(int index) const {
@@ -562,7 +684,7 @@ public:
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n9.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n9.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -602,8 +724,13 @@ public:
             if (choice == 5) {
                 int maxIndex;
                 double maxRating = highestRating(maxIndex);
-                cout << "Highest rating: " << maxRating
-                    << " for " << items[maxIndex]->getTitle();
+                if (maxIndex == -1) {
+                    cout << "No films found.\n";
+                }
+                else {
+                    cout << "Highest rating: " << maxRating
+                        << " for " << items[maxIndex]->getTitle();
+                }
             }
             if (choice == 6) {
                 int loop = 0;
@@ -615,6 +742,11 @@ public:
                         break;
                     linkedPrices.insertFirst(temp);
                 }
+            }
+
+            if (choice == 7) {
+                if (!undoLastRemove())
+                    cout << "Nothing to undo.\n";
             }
         } while (choice != 9);
     }
@@ -713,7 +845,7 @@ TEST_CASE("Recursive function with films") {
     MediaTracker tracker;
 
     tracker += new Film("Movie A", 2000, STREAMING, 7.5);
-    tracker += new Film("Movie B", 2010, THEATER, 8.2); 
+    tracker += new Film("Movie B", 2010, THEATER, 8.2);
     tracker += new Film("Movie C", 2005, PHYSICAL, 6.8);
 
     tracker += new Documentary("Earth Doc", 2012, STREAMING, "Nature");
@@ -721,8 +853,8 @@ TEST_CASE("Recursive function with films") {
     int maxIndex;
     double maxRating = tracker.highestRating(maxIndex);
 
-    CHECK(maxRating == 8.2);                        
-    CHECK(tracker.get(maxIndex)->getTitle() == "Movie B");  
+    CHECK(maxRating == 8.2);
+    CHECK(tracker.get(maxIndex)->getTitle() == "Movie B");
 }
 
 TEST_CASE("Recursive function with no films") {
@@ -734,8 +866,8 @@ TEST_CASE("Recursive function with no films") {
     int maxIndex;
     double maxRating = tracker.highestRating(maxIndex);
 
-    CHECK(maxRating == 0);      
-    CHECK(maxIndex == -1);      
+    CHECK(maxRating == 0);
+    CHECK(maxIndex == -1);
 }
 
 TEST_CASE("MediaTracker search and sort functions") {
@@ -761,7 +893,7 @@ TEST_CASE("Insert/Delete function of linked list") {
     unorderedLinkedList<int> list;
 
     list.insertFirst(10);
-    CHECK(list.search(10));   
+    CHECK(list.search(10));
     list.insertLast(20);
     CHECK(list.search(20));
     list.insertLast(30);
@@ -786,6 +918,106 @@ TEST_CASE("Iterator traversal") {
         ++it;
         ++expected;
     }
+}
+
+TEST_CASE("ArrayStack push/pop/top basic") {
+    ArrayStack<int> s(3);
+    CHECK(s.isEmpty());
+
+    CHECK(s.push(10));
+    CHECK(s.top() == 10);
+    CHECK(!s.isEmpty());
+
+    CHECK(s.push(20));
+    CHECK(s.top() == 20);
+
+    CHECK(s.pop() == 20);
+    CHECK(s.top() == 10);
+    CHECK(s.pop() == 10);
+    CHECK(s.isEmpty());
+}
+
+TEST_CASE("ArrayStack push to full returns false") {
+    ArrayStack<int> s(2);
+    CHECK(s.push(1));
+    CHECK(s.push(2));
+    CHECK_FALSE(s.push(3));
+}
+
+TEST_CASE("ArrayStack pop/top on empty throws") {
+    ArrayStack<int> s(2);
+    CHECK_THROWS_AS(s.pop(), MediaException);
+    CHECK_THROWS_AS(s.top(), MediaException);
+}
+
+TEST_CASE("MediaTracker undo remove restores last removed") {
+    MediaTracker tracker;
+    tracker += new Film("A", 2000, STREAMING, 7.0);
+    tracker += new Film("B", 2001, STREAMING, 8.0);
+
+    tracker -= 0; // removes "A" but stores it on undo stack
+
+    CHECK(tracker.get(0)->getTitle() == "B");
+    CHECK(tracker.undoLastRemove());
+    CHECK(tracker.get(1)->getTitle() == "A");
+}
+
+TEST_CASE("MediaTracker undo remove when empty returns false") {
+    MediaTracker tracker;
+    CHECK_FALSE(tracker.undoLastRemove());
+}
+
+TEST_CASE("ArrayQueue enqueue/dequeue/front basic") {
+    ArrayQueue<int> q(3);
+    CHECK(q.isEmpty());
+
+    CHECK(q.enqueue(10));
+    CHECK(q.front() == 10);
+    CHECK(!q.isEmpty());
+
+    CHECK(q.enqueue(20));
+    CHECK(q.front() == 10);
+
+    CHECK(q.dequeue() == 10);
+    CHECK(q.front() == 20);
+
+    CHECK(q.dequeue() == 20);
+    CHECK(q.isEmpty());
+}
+
+TEST_CASE("ArrayQueue enqueue to full returns false") {
+    ArrayQueue<int> q(2);
+    CHECK(q.enqueue(1));
+    CHECK(q.enqueue(2));
+    CHECK_FALSE(q.enqueue(3));
+}
+
+TEST_CASE("ArrayQueue dequeue/front on empty throws") {
+    ArrayQueue<int> q(2);
+    CHECK_THROWS_AS(q.dequeue(), MediaException);
+    CHECK_THROWS_AS(q.front(), MediaException);
+}
+
+TEST_CASE("ArrayQueue circular behavior works") {
+    ArrayQueue<int> q(3);
+
+    CHECK(q.enqueue(1));
+    CHECK(q.enqueue(2));
+    CHECK(q.enqueue(3));
+    CHECK_FALSE(q.enqueue(4)); // full
+
+    CHECK(q.dequeue() == 1);
+    CHECK(q.dequeue() == 2);
+
+    CHECK(q.enqueue(4));
+    CHECK(q.enqueue(5));
+
+    CHECK(q.front() == 3);
+    CHECK(q.dequeue() == 3);
+    CHECK(q.dequeue() == 4);
+    CHECK(q.dequeue() == 5);
+
+    CHECK(q.isEmpty());
 }
 
 #else
