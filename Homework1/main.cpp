@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 #include <vector>
+#include <map>
+
 
 using namespace std;
 
@@ -531,6 +533,18 @@ private:
     vector<int> prices;
     ArrayStack<MediaItem*> undoRemoved;
 
+    // We keep the DynamicArray for ordered storage, and use a map to
+    // support direct title-based lookup instead of scanning every item.
+    map<string, int> titleIndex;
+
+    void rebuildTitleIndex() {
+        titleIndex.clear();
+        for (int i = 0; i < items.getSize(); i++) {
+            titleIndex[items[i]->getTitle()] = i;
+        }
+    }
+
+
 
     ViewingType askViewingType() {
         int choice;
@@ -559,8 +573,10 @@ public:
 
     MediaTracker& operator+=(MediaItem* m) {
         items.add(m);
+        titleIndex[m->getTitle()] = items.getSize() - 1;
         return *this;
     }
+
 
     MediaTracker& operator-=(int index) {
         if (index < 0 || index >= items.getSize())
@@ -574,8 +590,10 @@ public:
             throw MediaException("Undo stack full - cannot store removed item");
         }
 
+        rebuildTitleIndex();
         return *this;
     }
+
 
     bool undoLastRemove() {
         if (undoRemoved.isEmpty())
@@ -583,6 +601,7 @@ public:
 
         MediaItem* restored = undoRemoved.pop();
         items.add(restored);
+        titleIndex[restored->getTitle()] = items.getSize() - 1;
         return true;
     }
 
@@ -591,6 +610,37 @@ public:
             throw MediaException("MediaTracker invalid index access: " + to_string(index));
         return items[index];
     }
+
+
+    MediaItem* findByTitle(const string& title) const {
+        auto it = titleIndex.find(title);
+        if (it == titleIndex.end())
+            return nullptr;
+
+        return items[it->second];
+    }
+
+    bool removeByTitle(const string& title) {
+        auto it = titleIndex.find(title);
+        if (it == titleIndex.end())
+            return false;
+
+        *this -= it->second;
+        return true;
+    }
+
+    void printTitleIndex() const {
+        if (titleIndex.empty()) {
+            cout << "Title map is empty.\n";
+            return;
+        }
+
+        cout << "\nTitle lookup map:\n";
+        for (const auto& entry : titleIndex) {
+            cout << entry.first << " -> index " << entry.second << endl;
+        }
+    }
+
 
     int seqSearch(const vector<int>& list, int target)
     {
@@ -684,7 +734,7 @@ public:
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n9.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n8.Find By Title\n9.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -748,6 +798,24 @@ public:
                 if (!undoLastRemove())
                     cout << "Nothing to undo.\n";
             }
+
+            if (choice == 8) {
+                string searchTitle;
+                cout << "Enter title to find: ";
+                getline(cin, searchTitle);
+
+                MediaItem* foundItem = findByTitle(searchTitle);
+                if (foundItem == nullptr) {
+                    cout << "Title not found.\n";
+                }
+                else {
+                    cout << "Found item:\n";
+                    cout << *foundItem << endl;
+                }
+
+                printTitleIndex();
+            }
+
         } while (choice != 9);
     }
 };
@@ -1018,6 +1086,42 @@ TEST_CASE("ArrayQueue circular behavior works") {
     CHECK(q.dequeue() == 5);
 
     CHECK(q.isEmpty());
+}
+
+TEST_CASE("MediaTracker findByTitle returns matching item") {
+    MediaTracker tracker;
+    tracker += new Film("Inception", 2010, STREAMING, 9.0);
+    tracker += new Documentary("Planet Earth", 2006, THEATER, "Nature");
+
+    MediaItem* found = tracker.findByTitle("Inception");
+
+    CHECK(found != nullptr);
+    CHECK(found->getTitle() == "Inception");
+}
+
+TEST_CASE("MediaTracker findByTitle returns nullptr for missing title") {
+    MediaTracker tracker;
+    tracker += new Film("Interstellar", 2014, STREAMING, 8.5);
+
+    CHECK(tracker.findByTitle("Missing Title") == nullptr);
+}
+
+TEST_CASE("MediaTracker removeByTitle removes an existing title") {
+    MediaTracker tracker;
+    tracker += new Film("Titanic", 1997, STREAMING, 8.0);
+    tracker += new Film("Avatar", 2009, THEATER, 7.8);
+
+    CHECK(tracker.removeByTitle("Titanic") == true);
+    CHECK(tracker.findByTitle("Titanic") == nullptr);
+    CHECK(tracker.get(0)->getTitle() == "Avatar");
+}
+
+TEST_CASE("MediaTracker removeByTitle returns false for missing title") {
+    MediaTracker tracker;
+    tracker += new Film("Gladiator", 2000, STREAMING, 8.4);
+
+    CHECK(tracker.removeByTitle("Missing Title") == false);
+    CHECK(tracker.get(0)->getTitle() == "Gladiator");
 }
 
 #else
