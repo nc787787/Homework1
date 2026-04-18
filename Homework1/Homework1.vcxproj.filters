@@ -21,5 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="media_data.json" />
   </ItemGroup>
 </Project>

@@ -6,9 +6,12 @@
 #include <crtdbg.h>
 #include <vector>
 #include <map>
+#include <fstream>
+#include "json.hpp"  // nlohmann/json library
 
 
 using namespace std;
+using json = nlohmann::json;
 
 template <typename Type>
 struct nodeType {
@@ -731,10 +734,101 @@ public:
         }
     }
 
+    // JSON DATA LOADING FUNCTIONALITY
+    // This method reads media items from a JSON file and populates the MediaTracker
+    // The JSON file should contain an array of media objects with properties:
+    // - type: "Film" or "Documentary"
+    // - title, year, viewingType (1=Theater, 2=Streaming, 3=Physical)
+    // - rating (for Film) or subject (for Documentary)
+    bool loadFromJSON(const string& filename) {
+        try {
+            // Attempt to open the JSON file
+            ifstream file(filename);
+            if (!file.is_open()) {
+                throw MediaException("JSON file not found: " + filename);
+            }
+
+            // Parse JSON from file
+            json jsonData;
+            file >> jsonData;
+            file.close();
+
+            // Validate that the JSON is an array
+            if (!jsonData.is_array()) {
+                throw MediaException("JSON root must be an array");
+            }
+
+            // Track how many items were loaded
+            int loadedCount = 0;
+
+            // Iterate over each JSON object in the array
+            for (const auto& item : jsonData) {
+                // Validate required fields
+                if (!item.contains("type") || !item.contains("title") || 
+                    !item.contains("year") || !item.contains("viewingType")) {
+                    cout << "Warning: Skipping invalid JSON object (missing required fields)\n";
+                    continue;
+                }
+
+                string type = item["type"];
+                string title = item["title"];
+                int year = item["year"];
+                int viewingTypeInt = item["viewingType"];
+
+                // Validate viewingType range
+                if (viewingTypeInt < 1 || viewingTypeInt > 3) {
+                    cout << "Warning: Skipping item with invalid viewingType: " << title << "\n";
+                    continue;
+                }
+
+                ViewingType viewingType = static_cast<ViewingType>(viewingTypeInt);
+
+                // Create appropriate MediaItem based on type
+                if (type == "Film") {
+                    if (!item.contains("rating")) {
+                        cout << "Warning: Film missing rating field: " << title << "\n";
+                        continue;
+                    }
+                    double rating = item["rating"];
+                    *this += new Film(title, year, viewingType, rating);
+                    loadedCount++;
+                }
+                else if (type == "Documentary") {
+                    if (!item.contains("subject")) {
+                        cout << "Warning: Documentary missing subject field: " << title << "\n";
+                        continue;
+                    }
+                    string subject = item["subject"];
+                    *this += new Documentary(title, year, viewingType, subject);
+                    loadedCount++;
+                }
+                else {
+                    cout << "Warning: Unknown media type '" << type << "' for: " << title << "\n";
+                }
+            }
+
+            cout << "Successfully loaded " << loadedCount << " items from JSON file.\n";
+            return true;
+        }
+        catch (const json::parse_error& e) {
+            cout << "\nJSON Parse Error: " << e.what() << endl;
+            cout << "The JSON file may be malformed.\n";
+            return false;
+        }
+        catch (const MediaException& e) {
+            cout << e.what() << endl;
+            return false;
+        }
+        catch (const exception& e) {
+            cout << "\nUnexpected error loading JSON: " << e.what() << endl;
+            return false;
+        }
+    }
+
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n8.Find By Title\n9.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n8.Find By Title\n9.Load from JSON\n10.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -816,7 +910,17 @@ public:
                 printTitleIndex();
             }
 
-        } while (choice != 9);
+            if (choice == 9) {
+                string filename;
+                cout << "Enter JSON filename (or press Enter for 'media_data.json'): ";
+                getline(cin, filename);
+                if (filename.empty()) {
+                    filename = "media_data.json";
+                }
+                loadFromJSON(filename);
+            }
+
+        } while (choice != 10);
     }
 };
 
@@ -1122,6 +1226,61 @@ TEST_CASE("MediaTracker removeByTitle returns false for missing title") {
 
     CHECK(tracker.removeByTitle("Missing Title") == false);
     CHECK(tracker.get(0)->getTitle() == "Gladiator");
+}
+
+TEST_CASE("JSON loading - valid file with mixed media") {
+    MediaTracker tracker;
+    ofstream outFile("test_media.json");
+    outFile << R"([{"type":"Film","title":"Test Film 1","year":2020,"viewingType":2,"rating":8.5},{"type":"Documentary","title":"Test Doc 1","year":2019,"viewingType":1,"subject":"Science"}])";
+    outFile.close();
+    CHECK(tracker.loadFromJSON("test_media.json") == true);
+    MediaItem* item1 = tracker.findByTitle("Test Film 1");
+    CHECK(item1 != nullptr);
+    Film* film = dynamic_cast<Film*>(item1);
+    CHECK(film->getRating() == 8.5);
+    remove("test_media.json");
+}
+
+TEST_CASE("JSON loading - file not found") {
+    MediaTracker tracker;
+    CHECK(tracker.loadFromJSON("nonexistent.json") == false);
+}
+
+TEST_CASE("JSON loading - malformed JSON") {
+    MediaTracker tracker;
+    ofstream outFile("malformed.json");
+    outFile << R"({ invalid json })";
+    outFile.close();
+    CHECK(tracker.loadFromJSON("malformed.json") == false);
+    remove("malformed.json");
+}
+
+TEST_CASE("JSON loading - not array") {
+    MediaTracker tracker;
+    ofstream outFile("notarray.json");
+    outFile << R"({"type":"Film","title":"Solo","year":2020,"viewingType":2,"rating":8.5})";
+    outFile.close();
+    CHECK(tracker.loadFromJSON("notarray.json") == false);
+    remove("notarray.json");
+}
+
+TEST_CASE("JSON loading - missing fields") {
+    MediaTracker tracker;
+    ofstream outFile("missing.json");
+    outFile << R"([{"type":"Film","year":2021,"viewingType":1,"rating":7.0}])";
+    outFile.close();
+    tracker.loadFromJSON("missing.json");
+    remove("missing.json");
+}
+
+TEST_CASE("JSON loading - invalid viewingType") {
+    MediaTracker tracker;
+    ofstream outFile("invalid.json");
+    outFile << R"([{"type":"Film","title":"Invalid","year":2021,"viewingType":99,"rating":7.0}])";
+    outFile.close();
+    tracker.loadFromJSON("invalid.json");
+    CHECK(tracker.findByTitle("Invalid") == nullptr);
+    remove("invalid.json");
 }
 
 #else
