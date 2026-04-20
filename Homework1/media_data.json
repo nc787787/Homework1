@@ -1,0 +1,44 @@
+[
+    {
+        "type": "Film",
+        "title": "The Shawshank Redemption",
+        "year": 1994,
+        "viewingType": 2,
+        "rating": 9.3
+    },
+    {
+        "type": "Film",
+        "title": "The Dark Knight",
+        "year": 2008,
+        "viewingType": 1,
+        "rating": 9.0
+    },
+    {
+        "type": "Documentary",
+        "title": "Planet Earth II",
+        "year": 2016,
+        "viewingType": 2,
+        "subject": "Nature"
+    },
+    {
+        "type": "Film",
+        "title": "Inception",
+        "year": 2010,
+        "viewingType": 2,
+        "rating": 8.8
+    },
+    {
+        "type": "Documentary",
+        "title": "The Social Dilemma",
+        "year": 2020,
+        "viewingType": 2,
+        "subject": "Technology"
+    },
+    {
+        "type": "Film",
+        "title": "Parasite",
+        "year": 2019,
+        "viewingType": 1,
+        "rating": 8.6
+    }
+]
