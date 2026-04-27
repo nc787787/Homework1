@@ -1,3 +1,7 @@
+#define NOMINMAX  
+
+#include <windows.h>  // if you even need this
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -7,11 +11,33 @@
 #include <vector>
 #include <map>
 #include <fstream>
-#include "json.hpp"  // nlohmann/json library
+#include <sstream>
 
+#include "HttpClient.h"
+#include "json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
+
+class APIClient : public HttpClient {
+private:
+    string response;
+
+public:
+    void StartOfData() override {
+        response.clear();
+    }
+
+    void Data(const char* data, const unsigned int size) override {  // 🔥 EXACT MATCH
+        response.append(data, size);
+    }
+
+    void EndOfData() override {}
+
+    string GetResponse() const {
+        return response;
+    }
+};
 
 template <typename Type>
 struct nodeType {
@@ -262,10 +288,6 @@ public:
     }
 
     int getSize() const { return size; }
-
-    double highestRating(int first, int last) {
-
-    }
 };
 
 template <typename T>
@@ -828,7 +850,7 @@ public:
     void showMenu() {
         int choice;
         do {
-            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n8.Find By Title\n9.Load from JSON\n10.Quit\nChoice: ";
+            cout << "\n1.Add Film\n2.Add Documentary\n3.View\n4.Remove Item\n5.Print Highest Score\n6.Add price list\n7.Undo Remove\n8.Find By Title\n9.Load from JSON\n10.Load from API\n11.Quit\nChoice: ";
             cin >> choice;
             cout << endl;
             cin.ignore(1000, '\n');
@@ -920,7 +942,64 @@ public:
                 loadFromJSON(filename);
             }
 
-        } while (choice != 10);
+// REST API Integration:
+// Performs a GET request to retrieve JSON data from an external API,
+// parses the response using nlohmann/json, and inserts it into MediaTracker.
+// Also demonstrates a POST request sending JSON data to the API.
+
+            if (choice == 10) {
+                APIClient client;
+
+                // ---------------- GET REQUEST ----------------
+                try {
+                    client.Get("http://api.macomb.io/jokes?count=3");
+
+
+                    string response = client.GetResponse();
+
+                    json data = json::parse(response);
+
+                    cout << "\nLoaded from API:\n";
+
+                    for (auto& item : data) {
+                        string title = item["setup"];
+                        string subject = item["punchline"];
+
+                        *this += new Documentary(title, 2024, STREAMING, subject);
+                    }
+
+                    cout << "Successfully loaded API data into MediaTracker.\n";
+
+                    // 🔥 show integration
+                    printAll();
+                }
+                catch (json::exception& e) {
+                    cout << "JSON Error: " << e.what() << endl;
+                }
+
+                // ---------------- POST REQUEST ----------------
+                try {
+                    json postData;
+                    postData["name"] = "New Media Item";
+                    postData["value"] = 123;
+
+                    string body = postData.dump();
+
+                    client.Post("http://api.macomb.io/jokes", body);
+
+                    cout << "\nPOST request sent successfully.\n";
+
+
+                    string postResponse = client.GetResponse();
+
+                    cout << "\nPOST Response:\n" << postResponse << endl;
+                }
+                catch (json::exception& e) {
+                    cout << "POST JSON Error: " << e.what() << endl;
+                }
+            }
+
+        } while (choice != 11);
     }
 };
 
@@ -1281,6 +1360,17 @@ TEST_CASE("JSON loading - invalid viewingType") {
     tracker.loadFromJSON("invalid.json");
     CHECK(tracker.findByTitle("Invalid") == nullptr);
     remove("invalid.json");
+}
+
+TEST_CASE("APIClient stores response correctly") { //14
+    APIClient client;
+
+    client.StartOfData();
+    client.Data("he", 2);
+    client.Data("llo", 3);
+    client.EndOfData();
+
+    CHECK(client.GetResponse() == "hello");
 }
 
 #else
