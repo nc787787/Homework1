@@ -23,4 +23,9 @@
     <None Include="ClassDiagram.cd" />
     <None Include="media_data.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HttpClient.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
