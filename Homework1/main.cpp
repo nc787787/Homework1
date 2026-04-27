@@ -1,3 +1,7 @@
+#define NOMINMAX  
+
+#include <windows.h>  // if you even need this
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -7,9 +11,10 @@
 #include <vector>
 #include <map>
 #include <fstream>
-#include "HttpClient.h"
-#include "json.hpp"  // nlohmann/json library
+#include <sstream>
 
+#include "HttpClient.h"
+#include "json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -283,10 +288,6 @@ public:
     }
 
     int getSize() const { return size; }
-
-    double highestRating(int first, int last) {
-
-    }
 };
 
 template <typename T>
@@ -1361,11 +1362,12 @@ TEST_CASE("JSON loading - invalid viewingType") {
     remove("invalid.json");
 }
 
-TEST_CASE("APIClient stores response correctly") { //new assignment 14 doc test
+TEST_CASE("APIClient stores response correctly") { //14
     APIClient client;
 
     client.StartOfData();
-    client.Data("hello", 5);
+    client.Data("he", 2);
+    client.Data("llo", 3);
     client.EndOfData();
 
     CHECK(client.GetResponse() == "hello");
